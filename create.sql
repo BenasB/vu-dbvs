@@ -47,7 +47,8 @@ CREATE TABLE test_results
     time_spent numeric(16, 14) NOT NULL CHECK (time_spent >= 0),
     memory_used int NOT NULL CHECK (memory_used >= 0),
     solution_id int NOT NULL REFERENCES solutions(id) ON DELETE CASCADE,
-    test_case_id int NOT NULL REFERENCES test_cases(id) ON DELETE CASCADE
+    test_case_id int NOT NULL REFERENCES test_cases(id) ON DELETE CASCADE,
+    UNIQUE (solution_id, test_case_id)
 );
 
 -- Create views
@@ -72,19 +73,77 @@ WITH successful_solutions(solution_id) AS
     GROUP BY solution_id
     HAVING COUNT(CASE WHEN is_success='false' THEN 1 END) = 0
 )
-SELECT C.username, COUNT(B.submitted_by) AS "correct solutions"
+SELECT C.username, COUNT(DISTINCT B.problem_id) AS "correct solutions"
 FROM successful_solutions AS A
 JOIN solutions AS B ON A.solution_id = B.id
 RIGHT OUTER JOIN users AS C ON B.submitted_by = C.username
 GROUP BY B.submitted_by, C.username
 ORDER BY COUNT(B.submitted_by) DESC, C.username;
 
+-- Create triggers
+
+CREATE FUNCTION enough_points_for_solution_submition() 
+   RETURNS TRIGGER 
+   LANGUAGE PLPGSQL
+AS $$
+BEGIN
+    IF 
+    (
+        SELECT points 
+        FROM users
+        WHERE NEW.submitted_by = username
+    )
+    < 
+    (
+        SELECT required_points 
+        FROM problems
+        WHERE NEW.problem_id = id
+    ) THEN
+      RAISE EXCEPTION 'User does not have enough points to solve this problem';
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER require_points_for_solution_submition
+BEFORE INSERT ON solutions
+FOR EACH ROW EXECUTE PROCEDURE enough_points_for_solution_submition();
+
+CREATE FUNCTION is_test_result_pointing_to_same_problem() 
+   RETURNS TRIGGER 
+   LANGUAGE PLPGSQL
+AS $$
+BEGIN
+    IF 
+    (
+        SELECT problem_id
+        FROM test_cases
+        WHERE NEW.test_case_id = id
+    )
+    <> 
+    (
+        SELECT problem_id
+        FROM solutions
+        WHERE NEW.solution_id = id
+    ) THEN
+      RAISE EXCEPTION 'Test result is referencing a test case from a different problem';
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER require_test_result_to_reference_same_problem
+BEFORE INSERT ON test_results
+FOR EACH ROW EXECUTE PROCEDURE is_test_result_pointing_to_same_problem();
+
 -- Populate data
 
 INSERT INTO users VALUES
 ('benasb', 'Benas', 'Budrys', 'benas.budrys@stud.mif.vu.lt', 42),
 ('jonce', 'Jonas', 'Jonaitis', 'jonas.jonaitis@gmail.com', DEFAULT),
-('vardis123', 'Vardenis', 'Pavardenis', 'varpavar@manomail.org', DEFAULT);
+('vardis123', 'Vardenis', 'Pavardenis', 'varpavar@manomail.org', 15);
 
 INSERT INTO problems VALUES
 (DEFAULT, 'Sudekite du naturaliuosius skaicius a ir b. Skaiciai ivedami atskirti tarpu', 15, 3, 3.12345, 556),
@@ -104,8 +163,8 @@ INSERT INTO solutions VALUES
 (DEFAULT, DEFAULT, '#include <stdio.h>\nint main() {\n   printf("Hello, World!");\n   return 0;\n}\n', 1, 'benasb'),
 (DEFAULT, DEFAULT, 'teisingas kodas', 1, 'benasb'),
 (DEFAULT, DEFAULT, 'printf("hi");', 2, 'benasb'),
-(DEFAULT, DEFAULT, 'mano irgi teisingas source code', 1, 'vardis123');
-
+(DEFAULT, DEFAULT, 'mano irgi teisingas source code', 1, 'vardis123'),
+(DEFAULT, DEFAULT, 'teisingas kodas numeris du', 1, 'benasb');
 
 INSERT INTO test_results VALUES
 (DEFAULT, 'true', 1.566, 123, 1, 1),
@@ -117,7 +176,9 @@ INSERT INTO test_results VALUES
 (DEFAULT, 'true', 2, 112, 3, 5),
 (DEFAULT, 'true', 1, 87, 3, 6),
 (DEFAULT, 'true', 1.64, 456, 4, 1),
-(DEFAULT, 'true', 1.42, 333, 4, 2);
+(DEFAULT, 'true', 1.42, 333, 4, 2),
+(DEFAULT, 'true', 1.42, 424, 5, 1),
+(DEFAULT, 'true', 0.42, 321, 5, 2);
 
 -- Show initial data
 SELECT * FROM users;
