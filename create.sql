@@ -57,7 +57,14 @@ SELECT username, points
 FROM users
 ORDER BY points DESC, username; 
 
-CREATE VIEW leaderboard_solutions AS
+CREATE VIEW problems_popularity AS
+SELECT A.id, COUNT(B.id) AS "solution attempts"
+FROM problems AS A
+LEFT OUTER JOIN solutions AS B ON B.problem_id = A.id
+GROUP BY A.id
+ORDER BY COUNT(B.id) DESC, A.id;
+
+CREATE MATERIALIZED VIEW leaderboard_solutions_monthly AS
 WITH successful_solutions(solution_id) AS
 (
     SELECT solution_id
@@ -81,7 +88,8 @@ INSERT INTO users VALUES
 
 INSERT INTO problems VALUES
 (DEFAULT, 'Sudekite du naturaliuosius skaicius a ir b. Skaiciai ivedami atskirti tarpu', 15, 3, 3.12345, 556),
-(DEFAULT, 'Perrasykite duota zodi atvirksciai', DEFAULT, DEFAULT, DEFAULT, DEFAULT);
+(DEFAULT, 'Perrasykite duota zodi atvirksciai', DEFAULT, DEFAULT, DEFAULT, DEFAULT),
+(DEFAULT, 'Dar viena idomi uzduotis', DEFAULT, DEFAULT, DEFAULT, DEFAULT);
 
 INSERT INTO test_cases VALUES
 (DEFAULT, '5 6', '11', 1),
@@ -89,7 +97,8 @@ INSERT INTO test_cases VALUES
 (DEFAULT, 'alus', 'sula', 2),
 (DEFAULT, 'benas', 'saneb', 2),
 (DEFAULT, 'alussula', 'alussula', 2),
-(DEFAULT, 'labaiIlgasZodis', 'sidoZsaglIiabal', 2);
+(DEFAULT, 'labaiIlgasZodis', 'sidoZsaglIiabal', 2),
+(DEFAULT, '2 6', '64', 3);
 
 INSERT INTO solutions VALUES
 (DEFAULT, DEFAULT, '#include <stdio.h>\nint main() {\n   printf("Hello, World!");\n   return 0;\n}\n', 1, 'benasb'),
@@ -116,3 +125,6 @@ SELECT * FROM problems;
 SELECT * FROM test_cases;
 SELECT * FROM solutions;
 SELECT * FROM test_results;
+
+-- Refresh materialized view
+REFRESH MATERIALIZED VIEW leaderboard_solutions_monthly;
