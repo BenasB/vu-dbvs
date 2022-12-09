@@ -1,7 +1,3 @@
-CREATE DATABASE programming_problems_platform;
-
-\c programming_problems_platform
-
 -- Create tables
 
 CREATE TABLE users
@@ -77,6 +73,10 @@ SELECT C.username, COUNT(DISTINCT B.problem_id) AS "correct solutions"
 FROM successful_solutions AS A
 JOIN solutions AS B ON A.solution_id = B.id
 RIGHT OUTER JOIN users AS C ON B.submitted_by = C.username
+WHERE 
+	(extract('year' FROM B.submitted_at::date) = extract('year' FROM CURRENT_DATE) AND extract('month' FROM B.submitted_at::date) < extract('month' FROM CURRENT_DATE))
+	OR
+	(extract('year' FROM B.submitted_at::date) < extract('year' FROM CURRENT_DATE))
 GROUP BY B.submitted_by, C.username
 ORDER BY COUNT(B.submitted_by) DESC, C.username;
 
@@ -86,19 +86,22 @@ CREATE FUNCTION enough_points_for_solution_submition()
    RETURNS TRIGGER 
    LANGUAGE PLPGSQL
 AS $$
+DECLARE
+	user_points int;
+	problem_points int;
 BEGIN
-    IF 
-    (
-        SELECT points 
-        FROM users
-        WHERE NEW.submitted_by = username
-    )
-    < 
-    (
-        SELECT required_points 
-        FROM problems
-        WHERE NEW.problem_id = id
-    ) THEN
+	 SELECT users.points
+	 INTO user_points
+	 FROM users
+	 WHERE NEW.submitted_by = username;
+	 
+	 SELECT required_points 
+	 INTO problem_points
+	 FROM problems
+	 WHERE NEW.problem_id = id;
+
+    IF user_points < problem_points
+    THEN
       RAISE EXCEPTION 'User does not have enough points to solve this problem';
     END IF;
 
@@ -114,19 +117,22 @@ CREATE FUNCTION is_test_result_pointing_to_same_problem()
    RETURNS TRIGGER 
    LANGUAGE PLPGSQL
 AS $$
+DECLARE
+	test_case_problem_id int;
+	solution_problem_id int;
 BEGIN
-    IF 
-    (
-        SELECT problem_id
-        FROM test_cases
-        WHERE NEW.test_case_id = id
-    )
-    <> 
-    (
-        SELECT problem_id
-        FROM solutions
-        WHERE NEW.solution_id = id
-    ) THEN
+	 SELECT problem_id
+	 INTO test_case_problem_id
+	 FROM test_cases
+	 WHERE NEW.test_case_id = id;
+	 
+	 SELECT problem_id
+	 INTO solution_problem_id
+	 FROM solutions
+	 WHERE NEW.solution_id = id;
+	 
+    IF test_case_problem_id <> solution_problem_id
+    THEN
       RAISE EXCEPTION 'Test result is referencing a test case from a different problem';
     END IF;
 
@@ -166,9 +172,9 @@ INSERT INTO test_cases VALUES
 
 INSERT INTO solutions VALUES
 (DEFAULT, DEFAULT, '#include <stdio.h>\nint main() {\n   printf("Hello, World!");\n   return 0;\n}\n', 1, 'benasb'),
-(DEFAULT, DEFAULT, 'teisingas kodas', 1, 'benasb'),
+(DEFAULT, '2016-06-22 19:10:25-07', 'teisingas kodas', 1, 'benasb'),
 (DEFAULT, DEFAULT, 'printf("hi");', 2, 'benasb'),
-(DEFAULT, DEFAULT, 'mano irgi teisingas source code', 1, 'vardis123'),
+(DEFAULT, '2022-11-22 19:10:25-07', 'mano irgi teisingas source code', 1, 'vardis123'),
 (DEFAULT, DEFAULT, 'teisingas kodas numeris du', 1, 'benasb');
 
 INSERT INTO test_results VALUES
