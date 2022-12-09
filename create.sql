@@ -138,6 +138,11 @@ CREATE TRIGGER require_test_result_to_reference_same_problem
 BEFORE INSERT ON test_results
 FOR EACH ROW EXECUTE PROCEDURE is_test_result_pointing_to_same_problem();
 
+-- Create index
+
+CREATE UNIQUE INDEX description_search
+ON problems (description);
+
 -- Populate data
 
 INSERT INTO users VALUES
