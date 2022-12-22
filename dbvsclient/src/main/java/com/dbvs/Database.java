@@ -6,17 +6,15 @@ import java.sql.DriverManager;
 public class Database {
     public static Connection Connection;
 
-    private static final String USERNAME = "docker"; // bebu8390
-    private static final String DATABASE = "docker"; // studentu
-    private static final String SERVER = "localhost"; // pgsql3.mif
-
     public Database() {
         java.io.Console console = System.console();
-        console.printf("Username: %s\n", USERNAME);
+        String server = console.readLine("Server: ");
+        String database = console.readLine("Database: ");
+        String username = console.readLine("Username: ");
         String password = new String(console.readPassword("Password: "));
 
         try {
-            Connection = DriverManager.getConnection("jdbc:postgresql://" + SERVER + "/" + DATABASE, USERNAME,
+            Connection = DriverManager.getConnection("jdbc:postgresql://" + server + "/" + database, username,
                     password);
         } catch (Exception e) {
             System.out.println(e.getMessage());
