@@ -32,7 +32,7 @@ public class ListSolutions implements IMenuOption {
         System.out.println("--------------------------------------------------");
         while (rs.next()) {
             System.out.println(rs.getInt("id") + " | "
-                    + rs.getDate("submitted_at") + " | "
+                    + rs.getTimestamp("submitted_at") + " | "
                     + rs.getString("source_file") + " | "
                     + rs.getInt("problem_id") + " | "
                     + rs.getString("submitted_by"));

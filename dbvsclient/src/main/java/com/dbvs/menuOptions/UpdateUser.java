@@ -26,7 +26,7 @@ public class UpdateUser implements IMenuOption {
     public void execute() {
         new ListUsers().execute();
 
-        System.out.println("\nUsername to update: ");
+        System.out.print("\nUsername to update: ");
         String username = in.nextLine();
 
         System.out.println();
