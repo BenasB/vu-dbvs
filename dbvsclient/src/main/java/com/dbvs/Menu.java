@@ -6,6 +6,7 @@ import com.dbvs.menuOptions.Exit;
 import com.dbvs.menuOptions.IMenuOption;
 import com.dbvs.menuOptions.LastMonthLeaderboard;
 import com.dbvs.menuOptions.ListProblems;
+import com.dbvs.menuOptions.ListSolutions;
 import com.dbvs.menuOptions.ListTestCases;
 import com.dbvs.menuOptions.ListUsers;
 import com.dbvs.menuOptions.RegisterUser;
@@ -13,7 +14,7 @@ import com.dbvs.menuOptions.SolveProblem;
 
 public class Menu {
     private IMenuOption[] options = { new ListUsers(), new RegisterUser(), new LastMonthLeaderboard(),
-            new ListProblems(), new ListTestCases(), new SolveProblem(), new Exit() };
+            new ListProblems(), new ListTestCases(), new ListSolutions(), new SolveProblem(), new Exit() };
     private Scanner in = new Scanner(System.in);
 
     public void display() {
