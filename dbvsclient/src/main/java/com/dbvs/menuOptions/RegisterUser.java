@@ -20,13 +20,13 @@ public class RegisterUser implements IMenuOption {
 
     @Override
     public void execute() {
-        System.out.println("Username: ");
+        System.out.print("Username: ");
         String username = in.nextLine();
-        System.out.println("First name: ");
+        System.out.print("First name: ");
         String firstName = in.nextLine();
-        System.out.println("Last name: ");
+        System.out.print("Last name: ");
         String lastName = in.nextLine();
-        System.out.println("Email: ");
+        System.out.print("Email: ");
         String email = in.nextLine();
 
         System.out.println();
@@ -39,10 +39,9 @@ public class RegisterUser implements IMenuOption {
 
             int affectedRows = pstmt.executeUpdate();
 
-            if (affectedRows == 0) {
-                System.out.println("Failed to register a new user");
-                return;
-            }
+            if (affectedRows == 0)
+                throw new SQLException();
+
             System.out.println("New user '" + username + "' created successfully");
         } catch (SQLException ex) {
             System.out.println("Failed to register a new user");

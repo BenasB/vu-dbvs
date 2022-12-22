@@ -11,9 +11,10 @@ import com.dbvs.menuOptions.ListTestCases;
 import com.dbvs.menuOptions.ListUsers;
 import com.dbvs.menuOptions.RegisterUser;
 import com.dbvs.menuOptions.SolveProblem;
+import com.dbvs.menuOptions.UpdateUser;
 
 public class Menu {
-    private IMenuOption[] options = { new ListUsers(), new RegisterUser(), new LastMonthLeaderboard(),
+    private IMenuOption[] options = { new ListUsers(), new RegisterUser(), new UpdateUser(), new LastMonthLeaderboard(),
             new ListProblems(), new ListTestCases(), new ListSolutions(), new SolveProblem(), new Exit() };
     private Scanner in = new Scanner(System.in);
 

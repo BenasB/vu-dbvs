@@ -31,11 +31,6 @@ public class SolveProblem implements IMenuOption {
         return "Solve a problem";
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.dbvs.menuOptions.IMenuOption#execute()
-     */
     @Override
     public void execute() {
         new ListUsers().execute();
